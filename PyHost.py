@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import socket, re
+import socket 
 from ipaddress import IPv4Network
 
 net = IPv4Network("192.168.3.0/24")
