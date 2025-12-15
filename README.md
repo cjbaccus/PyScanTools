@@ -39,6 +39,12 @@ PyHost.py scans all hosts in a given subnet and performs reverse DNS lookups to 
 # Quiet mode (results only, no logging)
 ./PyHost.py 172.16.0.0/24 -q
 
+# Export results to markdown table
+./PyHost.py 192.168.1.0/24 -e results.md
+
+# Scan with export and custom settings
+./PyHost.py 10.0.0.0/24 -t 5.0 -v -e network_scan.md
+
 # Help
 ./PyHost.py --help
 ```
@@ -49,6 +55,7 @@ PyHost.py scans all hosts in a given subnet and performs reverse DNS lookups to 
 - `-d, --delay`: Delay between queries for rate limiting (default: 0.1)
 - `-v, --verbose`: Show failed DNS lookups and debug information
 - `-q, --quiet`: Suppress logging, show only results
+- `-e, --export FILE`: Export results to markdown table file
 
 #### Features
 
@@ -59,7 +66,22 @@ PyHost.py scans all hosts in a given subnet and performs reverse DNS lookups to 
 - **Rate Limiting**: Configurable delay to avoid overwhelming DNS servers
 - **Structured Logging**: Timestamps for audit trails and debugging
 - **Statistics**: Summary of successful lookups vs total hosts scanned
+- **Export to Markdown**: Generate markdown tables with IP addresses and DNS names
 - **Graceful Exit**: Proper Ctrl+C handling
+
+#### Export Format
+
+When using the `-e` option, results are exported to a markdown table file:
+
+```markdown
+| IP Address | DNS Name |
+|------------|----------|
+| 192.168.1.1 | router.local |
+| 192.168.1.10 | workstation.local |
+| 192.168.1.50 | server.local |
+```
+
+This format is easy to view in markdown-compatible applications and can be imported into documentation, reports, or other analysis tools.
 
 #### Requirements
 

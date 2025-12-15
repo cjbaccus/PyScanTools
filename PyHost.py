@@ -14,7 +14,33 @@ logging.basicConfig(
 )
 
 
-def scan_subnet(subnet, timeout=2.0, delay=0.1, verbose=False):
+def write_markdown_table(results, filename):
+    """Write scan results to a markdown table file.
+
+    Args:
+        results (list): List of dicts with 'ip' and 'hostname' keys
+        filename (str): Output filename for markdown table
+
+    Returns:
+        None: Writes to file
+    """
+    try:
+        with open(filename, 'w') as f:
+            # Write table header
+            f.write("| IP Address | DNS Name |\n")
+            f.write("|------------|----------|\n")
+
+            # Write each result as a table row
+            for result in results:
+                f.write(f"| {result['ip']} | {result['hostname']} |\n")
+
+    except OSError as e:
+        logging.error(f"Failed to write export file: {e}")
+    except Exception as e:
+        logging.error(f"Unexpected error writing export: {type(e).__name__}: {e}")
+
+
+def scan_subnet(subnet, timeout=2.0, delay=0.1, verbose=False, export_file=None):
     """Perform reverse DNS lookup on all hosts in subnet.
 
     Args:
@@ -22,9 +48,10 @@ def scan_subnet(subnet, timeout=2.0, delay=0.1, verbose=False):
         timeout (float): DNS query timeout in seconds
         delay (float): Delay between queries in seconds (rate limiting)
         verbose (bool): Enable verbose output for debugging
+        export_file (str): Optional filename to export results as markdown table
 
     Returns:
-        None: Prints results to stdout
+        None: Prints results to stdout and optionally exports to file
     """
     socket.setdefaulttimeout(timeout)
 
@@ -39,6 +66,7 @@ def scan_subnet(subnet, timeout=2.0, delay=0.1, verbose=False):
 
     found_count = 0
     total_count = 0
+    results = []  # Store results for export
 
     for addr in net:
         total_count += 1
@@ -54,6 +82,9 @@ def scan_subnet(subnet, timeout=2.0, delay=0.1, verbose=False):
 
             logging.info(f"Found: {addr} -> {hostname}")
             found_count += 1
+
+            # Store result for export
+            results.append({'ip': str(addr), 'hostname': hostname})
 
         except socket.herror as e:
             # Host not found - expected for most IPs
@@ -76,6 +107,11 @@ def scan_subnet(subnet, timeout=2.0, delay=0.1, verbose=False):
 
     # Summary statistics
     logging.info(f"Scan complete: {found_count}/{total_count} hosts with reverse DNS")
+
+    # Export results to markdown table if requested
+    if export_file and results:
+        write_markdown_table(results, export_file)
+        logging.info(f"Results exported to {export_file}")
 
 
 if __name__ == "__main__":
@@ -109,6 +145,12 @@ if __name__ == "__main__":
         action="store_true",
         help="Quiet mode (suppress logging, show only results)"
     )
+    parser.add_argument(
+        "-e", "--export",
+        type=str,
+        metavar="FILE",
+        help="Export results to markdown table file"
+    )
 
     args = parser.parse_args()
 
@@ -119,7 +161,7 @@ if __name__ == "__main__":
         logging.getLogger().setLevel(logging.DEBUG)
 
     try:
-        scan_subnet(args.subnet, args.timeout, args.delay, args.verbose)
+        scan_subnet(args.subnet, args.timeout, args.delay, args.verbose, args.export)
     except KeyboardInterrupt:
         logging.warning("\nScan interrupted by user")
         sys.exit(130)

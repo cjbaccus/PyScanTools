@@ -84,3 +84,4 @@ This is a network reconnaissance tool. When modifying or extending:
 - All scans should be authorized and documented
 - Consider network impact when scanning large subnets
 - to memorize
+- to memorize
